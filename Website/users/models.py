@@ -1,11 +1,21 @@
 from django.db import models
 
-# Create your models here.
-class User(models.Model):
-    gender              = models.CharField(max_length=1)
+# Create your models here
+class Name(models.Model):
+
     title               = models.CharField(max_length=2)
     first               = models.TextField()
     last                = models.TextField()
+
+class User(models.Model):
+    
+    type                = models.TextField()
+    gender              = models.CharField(max_length=1)
+    name = models.OneToOneField(
+        Name,
+        on_delete=models.CASCADE,
+    )
+    region              = models.TextField(null = True)
     street              = models.TextField()
     city                = models.TextField()
     state               = models.TextField()
@@ -15,12 +25,11 @@ class User(models.Model):
     offset              = models.TextField()
     description         = models.TextField()
     email               = models.EmailField()
-    dob_date            = models.TextField()
-    dob_age             = models.TextField()
-    registered_date     = models.TextField()
-    registered_age      = models.TextField()
-    phone               = models.TextField()
-    cell                = models.TextField()
-    picture_large       = models.TextField()
-    picture_medium      = models.TextField()
-    picture_thumbnail   = models.TextField()
+    birthday            = models.TextField()
+    registered          = models.TextField()
+    telephoneNumbers    = models.TextField()
+    mobileNumbers       = models.TextField()
+    large               = models.TextField()
+    medium              = models.TextField()
+    thumbnail           = models.TextField()
+    nacionality         = models.CharField(max_length=2, default='BR')
