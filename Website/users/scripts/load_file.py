@@ -4,25 +4,23 @@ from django.conf import settings
 from users.models import User
 import users.scripts.params as p
 import phonenumbers as pn
-from django.http import JsonResponse
-from users.resources import UserResource
+import json
 
 def import_csv (filename):
-    # file = open()
     
     with open(os.path.join(settings.MEDIA_ROOT, filename), 'r', encoding='utf-8') as file:
         
         reader = csv.reader(file)
         next(reader)
-        i = 1
 
         for row in reader:
-            print(i)
-            i+=1
 
             user = User(
                 type                = bounding_box_definition(float(row[8]), float(row[9])),
                 gender              = gender_simply(row[0]),
+                title               = row[1],
+                first               = row[2],
+                last                = row[3],
                 street              = row[4],  
                 city                = row[5],
                 state               = row[6],
@@ -39,13 +37,6 @@ def import_csv (filename):
                 thumbnail           = row[21]
                 )
             
-            # Name Class
-            user.name.title = row[1]
-            user.name.first = row[2]
-            user.name.last  = row[3]
-
-            print(user.name.title)
-            
             # Convert phones numbers
             user.telephoneNumbers = replace_number_format(row[17], user.nacionality)
             user.mobileNumbers  = replace_number_format(row[18], user.nacionality)
@@ -53,9 +44,43 @@ def import_csv (filename):
             # Save new user
             user.save()
 
-            person_resource = UserResource()
-            dataset = person_resource.export()
-            print(dataset.json)
+            # person_resource = UserResource()
+            # dataset = person_resource.export()
+
+def import_json (filename):
+
+    json_data = open(os.path.join(settings.MEDIA_ROOT, filename), 'r', encoding='utf-8')   
+    dataset = json.load(json_data) # deserialises it  
+    
+    for data in dataset['results']:
+        user = User(
+            type                = bounding_box_definition(float(data['location']['coordinates']['latitude']), float(data['location']['coordinates']['longitude'])),
+            gender              = gender_simply(data['gender']),
+            title               = data['name']['title'],
+            first               = data['name']['first'],
+            last                = data['name']['last'],
+            street              = data['location']['street'],
+            city                = data['location']['city'],
+            state               = data['location']['state'],
+            postcode            = data['location']['postcode'],
+            latitude            = data['location']['coordinates']['latitude'],
+            longitude           = data['location']['coordinates']['longitude'],
+            offset              = data['location']['timezone']['offset'],
+            description         = data['location']['timezone']['description'],
+            email               = data['email'],
+            birthday            = data['dob']['date'],
+            registered          = data['registered']['date'],
+            large               = data['picture']['large'],
+            medium              = data['picture']['medium'],
+            thumbnail           = data['picture']['thumbnail'],
+            )
+
+        # Convert phones numbers
+        user.telephoneNumbers = replace_number_format(data['phone'], user.nacionality)
+        user.mobileNumbers  = replace_number_format(data['cell'], user.nacionality)
+
+        # Save new user
+        user.save()
 
 def bounding_box_definition (lat, lon):
 
